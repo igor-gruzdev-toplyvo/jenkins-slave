@@ -1,0 +1,26 @@
+version: "3.8"
+
+networks:
+  jenkins_slave:
+    external: false
+
+volumes:
+  jenkins_data: null
+  ssh_data:
+    driver: local
+    driver_opts:
+      type: none
+      device: $PWD/docker/jenkins/.ssh
+      o: bind
+
+services:
+  jenkins_slave:
+    container_name: jenkins_slave
+    build: 
+      context: $PWD/docker/jenkins
+      dockerfile: Dockerfile
+    networks:
+      - jenkins_slave
+    volumes:
+      - jenkins_data:/home/jenkins
+      - ssh_data:/home/jenkins/.ssh
