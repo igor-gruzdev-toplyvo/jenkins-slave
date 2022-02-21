@@ -5,7 +5,9 @@ networks:
     external: false
 
 volumes:
-  jenkins_data: null
+  jenkins: null
+  jenkins_slave: null
+  docker_data: null
   ssh_data:
     driver: local
     driver_opts:
@@ -14,13 +16,29 @@ volumes:
       o: bind
 
 services:
+  jenkins:
+    container_name: jenkins
+    image: jenkins/jenkins:lts
+    ports:
+      - 8080:8080
+      - 50000:50000
+    volumes:
+      - jenkins:/var/jenkins_home
+      - /var/run/docker.sock:/var/run/docker.sock
+    networks:
+      - jenkins_slave
+
   jenkins_slave:
     container_name: jenkins_slave
+    restart: always
     build: 
       context: $PWD/docker/jenkins
       dockerfile: Dockerfile
+    volumes:
+      - docker_data:/var/lib/docker/btrfs
+      - jenkins_slave:/home/jenkins
+      - ssh_data:/home/jenkins/.ssh
     networks:
       - jenkins_slave
-    volumes:
-      - jenkins_data:/home/jenkins
-      - ssh_data:/home/jenkins/.ssh
+    cap_add:
+      - NET_ADMIN
